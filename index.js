@@ -133,13 +133,13 @@ wss.on("connection", (ws) => {
 						ws.send(
 							JSON.stringify({
 								type: "match",
-								handle: user.telegramId,
+								handle: user,
 							})
 						);
 						user.ws.send(
 							JSON.stringify({
 								type: "match",
-								handle: userInfo.telegramId,
+								handle: userInfo,
 							})
 						);
 					}
