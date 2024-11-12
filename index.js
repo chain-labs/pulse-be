@@ -21,9 +21,9 @@ wss.on('connection', (ws) => {
     let cleanupTimeout;
   
     ws.on('message', (message) => {
-      console.log('Received message:', message);
       try {
         const data = JSON.parse(message);
+        console.log('Received message:', data);
         const { type, sessionId, userInfo } = data;
   
         switch (type) {
