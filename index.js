@@ -111,9 +111,16 @@ wss.on("connection", (ws) => {
 					// Record the swipe
 					userInfo.swipes[user.telegramId] = true;
 
-          // sessions[sessionId].sessions[user.telegramId] = true;
-
-          
+					// Save the updated userInfo back to the session
+					const userIndex = sessions[sessionId].findIndex(
+						(u) => u.telegramId === userInfo.telegramId
+					);
+					if (userIndex !== -1) {
+						sessions[sessionId][userIndex] = {
+							...sessions[sessionId][userIndex],
+							swipes: userInfo.swipes,
+						};
+					}
 
 					console.log("User swipes:", user.swipes);
 					console.log("UserInfo swipes:", userInfo.swipes);
