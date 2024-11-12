@@ -82,7 +82,12 @@ wss.on('connection', (ws) => {
   });
 
   ws.on('close', () => {
-    console.log('Client disconnected');
+    const disconnectedUser = Object.values(sessions).flat().find(user => user.ws === ws);
+    if (disconnectedUser) {
+      console.log(`User ${disconnectedUser.telegramId} disconnected`);
+    } else {
+      console.log('Client disconnected');
+    }
     cleanupTimeout = setTimeout(() => {
       console.log('Cleaning up disconnected client sessions');
       for (const sessionId in sessions) {
