@@ -3,8 +3,7 @@
 const { MongoClient } = require("mongodb");
 require('dotenv').config();
 
-console.log(process.env.MONGODB_URL)
-const MONGODB_URL = process.env.MONGODB_URL;
+const MONGODB_URL = process.env.MONGO_URL;
 const DB_NAME = "websocket-sessions";
 
 let db;

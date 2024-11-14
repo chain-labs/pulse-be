@@ -42,18 +42,23 @@ function handleWebSocketConnection(ws, sessionsCollection) {
                         u => u.telegramId === userInfo.telegramId
                     );
 
+                    const currentTime = new Date();
+
                     if (existingUserIndex !== -1) {
                         console.log(`User ${userInfo.telegramId} rejoining session ${sessionId}`);
                         // Update existing user
                         session.users[existingUserIndex] = {
                             ...session.users[existingUserIndex],
-                            ...userInfo
+                            ...userInfo,
+                            lastActiveAt: currentTime // Update last active time
                         };
                     } else {
                         console.log(`User ${userInfo.telegramId} joining session ${sessionId} for the first time`);
                         session.users.push({
                             ...userInfo,
-                            swipes: {}
+                            swipes: {},
+                            joinedAt: currentTime,
+                            lastActiveAt: currentTime
                         });
                     }
 
@@ -113,7 +118,8 @@ function handleWebSocketConnection(ws, sessionsCollection) {
                         if (swipingUserWs) {
                             swipingUserWs.send(JSON.stringify({
                                 type: "match",
-                                handle: targetUser
+                                handle: targetUser,
+                                mode: sessionId,
                             }));
                         }
 
@@ -147,36 +153,39 @@ function handleWebSocketConnection(ws, sessionsCollection) {
     ws.on("close", async () => {
         if (currentUserInfo) {
             console.log(`User ${currentUserInfo.telegramId} disconnected`);
-            wsConnections.delete(currentUserInfo.telegramId);
-
-            cleanupTimeout = setTimeout(async () => {
-                try {
-                    const session = await sessionsCollection.findOne({ sessionId: currentSessionId });
-                    if (session) {
-                        const updatedUsers = session.users.filter(
-                            user => user.telegramId !== currentUserInfo.telegramId
-                        );
-
-                        if (updatedUsers.length === 0) {
-                            await sessionsCollection.deleteOne({ sessionId: currentSessionId });
-                            console.log(`Deleted empty session ${currentSessionId}`);
-                        } else {
-                            await sessionsCollection.updateOne(
-                                { sessionId: currentSessionId },
-                                { 
-                                    $set: { 
-                                        users: updatedUsers,
-                                        updatedAt: new Date()
-                                    } 
-                                }
-                            );
-                        }
-                    }
-                } catch (error) {
-                    console.error("Error cleaning up disconnected user:", error);
-                }
-            }, 5 * 60 * 1000); // 5 minutes
         }
+        // if (currentUserInfo) {
+        //     console.log(`User ${currentUserInfo.telegramId} disconnected`);
+        //     wsConnections.delete(currentUserInfo.telegramId);
+
+        //     cleanupTimeout = setTimeout(async () => {
+        //         try {
+        //             const session = await sessionsCollection.findOne({ sessionId: currentSessionId });
+        //             if (session) {
+        //                 const updatedUsers = session.users.filter(
+        //                     user => user.telegramId !== currentUserInfo.telegramId
+        //                 );
+
+        //                 if (updatedUsers.length === 0) {
+        //                     await sessionsCollection.deleteOne({ sessionId: currentSessionId });
+        //                     console.log(`Deleted empty session ${currentSessionId}`);
+        //                 } else {
+        //                     await sessionsCollection.updateOne(
+        //                         { sessionId: currentSessionId },
+        //                         { 
+        //                             $set: { 
+        //                                 users: updatedUsers,
+        //                                 updatedAt: new Date()
+        //                             } 
+        //                         }
+        //                     );
+        //                 }
+        //             }
+        //         } catch (error) {
+        //             console.error("Error cleaning up disconnected user:", error);
+        //         }
+        //     }, 5 * 60 * 1000); // 5 minutes
+        // }
     });
 }
 
